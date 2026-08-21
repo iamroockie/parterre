@@ -1,0 +1,65 @@
+version: "3"
+
+dotenv:
+  - .env
+
+vars:
+  GOLANGCI_LINT_VERSION: "2.13.0"
+
+  PROJECT_NAME: parterre
+  BIN_DIR: "{{.ROOT_DIR}}/bin"
+  GOLANGCI_LINT: "{{.BIN_DIR}}/golangci-lint"
+  COVERAGE_FILE: "{{.ROOT_DIR}}/coverage.out"
+
+tasks:
+  run:api:
+    desc: "Запуск api"
+    cmd: go run ./cmd/api
+
+  build:api:
+    desc: "Сборка api"
+    cmd: go build -o "./bin/{{.PROJECT_NAME}}-api" ./cmd/api
+
+  check:
+    desc: "Линтинг и тесты (без интеграционных)"
+    cmds:
+      - task: lint
+      - task: test
+
+  lint:
+    desc: "Линтинг"
+    deps: [golangci-lint:install]
+    cmd: '"{{.GOLANGCI_LINT}}" run ./...'
+
+  test:
+    desc: "Тесты (без интеграционных)"
+    cmd: go test -short -race ./...
+
+  format:
+    desc: "Форматирование кода"
+    deps: [golangci-lint:install]
+    cmd: '"{{.GOLANGCI_LINT}}" fmt'
+
+  coverage:
+    desc: "Покрытие всех тестов"
+    cmd: >-
+      go test -count=1 -coverprofile={{.COVERAGE_FILE}} 
+      -coverpkg=$(go list ./... | grep -v '/.*test$' | paste -sd,) ./...
+
+  coverage:func:
+    desc: "Покрытие всех тестов с выводом в процентах"
+    cmds:
+      - task: coverage
+      - go tool cover -func={{.COVERAGE_FILE}}
+
+  coverage:html:
+    desc: "Покрытие всех тестов с выводом в HTML"
+    cmds:
+      - task: coverage
+      - go tool cover -html={{.COVERAGE_FILE}} -o coverage.html
+
+  golangci-lint:install:
+    internal: true
+    cmd: curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b "{{.BIN_DIR}}" "v{{.GOLANGCI_LINT_VERSION}}"
+    status:
+      - '"{{.GOLANGCI_LINT}}" version | grep -q "version {{.GOLANGCI_LINT_VERSION}}"'
