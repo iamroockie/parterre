@@ -16,8 +16,8 @@ func TestLoad(t *testing.T) {
 	logLevel := slog.LevelDebug.String()
 	postgresDSN := "postgres://"
 	graceShutdown := 30 * time.Second
-	httpPort := uint16(8080)
-	httpHost := "127.0.0.1"
+	httpPort := uint16(3000)
+	httpHost := "127.0.1.1"
 	httpReadHeaderTimeout := 5 * time.Second
 	httpReadTimeout := 10 * time.Second
 	httpWriteTimeout := 10 * time.Second
@@ -48,6 +48,7 @@ func TestLoad(t *testing.T) {
 		require.Equal(t, httpReadTimeout, cfg.HTTP.ReadTimeout)
 		require.Equal(t, httpWriteTimeout, cfg.HTTP.WriteTimeout)
 		require.Equal(t, httpIdleTimeout, cfg.HTTP.IdleTimeout)
+		require.Equal(t, "127.0.1.1:3000", cfg.HTTP.Addr())
 	})
 
 	t.Run("fails", func(t *testing.T) {
