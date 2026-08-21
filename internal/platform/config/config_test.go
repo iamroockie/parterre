@@ -15,18 +15,20 @@ func TestLoad(t *testing.T) {
 	env := config.EnvLocal
 	logLevel := slog.LevelDebug.String()
 	postgresDSN := "postgres://"
-	graceShutdown := 30 * time.Second
+	graceShutdown := 45 * time.Second
 	httpPort := uint16(3000)
 	httpHost := "127.0.1.1"
-	httpReadHeaderTimeout := 5 * time.Second
-	httpReadTimeout := 10 * time.Second
-	httpWriteTimeout := 10 * time.Second
-	httpIdleTimeout := 60 * time.Second
+	httpReadyTimeout := 3 * time.Second
+	httpReadHeaderTimeout := 6 * time.Second
+	httpReadTimeout := 11 * time.Second
+	httpWriteTimeout := 12 * time.Second
+	httpIdleTimeout := 61 * time.Second
 
 	t.Setenv("APP_ENV", string(env))
 	t.Setenv("LOG_LEVEL", logLevel)
 	t.Setenv("HTTP_PORT", strconv.FormatUint(uint64(httpPort), 10))
 	t.Setenv("HTTP_HOST", httpHost)
+	t.Setenv("HTTP_READY_TIMEOUT", httpReadyTimeout.String())
 	t.Setenv("HTTP_READ_TIMEOUT", httpReadTimeout.String())
 	t.Setenv("HTTP_WRITE_TIMEOUT", httpWriteTimeout.String())
 	t.Setenv("HTTP_READ_HEADER_TIMEOUT", httpReadHeaderTimeout.String())
@@ -44,8 +46,9 @@ func TestLoad(t *testing.T) {
 		require.Equal(t, graceShutdown, cfg.GracefulShutdownTimeout)
 		require.Equal(t, httpPort, cfg.HTTP.Port)
 		require.Equal(t, httpHost, cfg.HTTP.Host)
-		require.Equal(t, httpReadHeaderTimeout, cfg.HTTP.ReadHeaderTimeout)
+		require.Equal(t, httpReadyTimeout, cfg.HTTP.ReadyTimeout)
 		require.Equal(t, httpReadTimeout, cfg.HTTP.ReadTimeout)
+		require.Equal(t, httpReadHeaderTimeout, cfg.HTTP.ReadHeaderTimeout)
 		require.Equal(t, httpWriteTimeout, cfg.HTTP.WriteTimeout)
 		require.Equal(t, httpIdleTimeout, cfg.HTTP.IdleTimeout)
 		require.Equal(t, "127.0.1.1:3000", cfg.HTTP.Addr())
@@ -60,6 +63,8 @@ func TestLoad(t *testing.T) {
 			"http port zero":                     {"HTTP_PORT", "0"},
 			"http read header timeout negative":  {"HTTP_READ_HEADER_TIMEOUT", "-1s"},
 			"http read header timeout zero":      {"HTTP_READ_HEADER_TIMEOUT", "0"},
+			"http ready timeout negative":        {"HTTP_READY_TIMEOUT", "-1s"},
+			"http ready timeout zero":            {"HTTP_READY_TIMEOUT", "0"},
 			"http read timeout negative":         {"HTTP_READ_TIMEOUT", "-1s"},
 			"http read timeout zero":             {"HTTP_READ_TIMEOUT", "0"},
 			"http write timeout negative":        {"HTTP_WRITE_TIMEOUT", "-1s"},
