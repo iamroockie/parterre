@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"log/slog"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
@@ -16,15 +15,6 @@ func NewRouter(log *slog.Logger) *chi.Mux {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-
-	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	r.Get("/readyz", func(w http.ResponseWriter, _ *http.Request) {
-		// TODO: Check DB
-		w.WriteHeader(http.StatusOK)
-	})
 
 	return r
 }
