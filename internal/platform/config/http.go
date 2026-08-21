@@ -10,6 +10,7 @@ import (
 type HTTPConfig struct {
 	Host              string        `env:"HOST" envDefault:"0.0.0.0"`
 	Port              uint16        `env:"PORT" envDefault:"8080"`
+	ReadyTimeout      time.Duration `env:"READY_TIMEOUT" envDefault:"2s"`
 	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" envDefault:"5s"`
 	ReadTimeout       time.Duration `env:"READ_TIMEOUT" envDefault:"10s"`
 	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT" envDefault:"10s"`
@@ -25,6 +26,10 @@ func (hc HTTPConfig) Addr() string {
 func (hc HTTPConfig) validate() error {
 	if hc.Port == 0 {
 		return errors.New("HTTP_PORT can not be 0")
+	}
+
+	if hc.ReadyTimeout <= 0 {
+		return errors.New("HTTP_READY_TIMEOUT must be greater than 0")
 	}
 
 	if hc.ReadTimeout <= 0 {
