@@ -19,6 +19,7 @@ func Config(t testing.TB) config.Config {
 		HTTP: config.HTTPConfig{
 			Host:              "127.0.0.1",
 			Port:              10000,
+			ReadyTimeout:      2 * time.Second,
 			ReadHeaderTimeout: 5 * time.Second,
 			ReadTimeout:       5 * time.Second,
 			WriteTimeout:      5 * time.Second,
