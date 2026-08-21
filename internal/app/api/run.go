@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -47,6 +48,14 @@ func Run(ctx context.Context, cfg config.Config, log *slog.Logger, ln net.Listen
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("shutdown error: %w", err)
+	}
+
+	select {
+	case err := <-srvError:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("server error: %w", err)
+		}
+	case <-shutdownCtx.Done():
 	}
 
 	log.Info("shutdown finished")
