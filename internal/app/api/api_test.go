@@ -37,7 +37,7 @@ func TestRun(t *testing.T) {
 
 	baseURL := "http://" + ln.Addr().String()
 
-	for _, route := range []string{"healthz"} {
+	for _, route := range []string{"healthz", "readyz"} {
 		t.Run(route, func(t *testing.T) {
 			require.Equal(t, http.StatusOK, getStatus(t, client, baseURL+"/"+route))
 		})
