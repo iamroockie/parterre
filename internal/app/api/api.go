@@ -38,14 +38,14 @@ func Run(ctx context.Context, cfg config.Config, log *slog.Logger, ln net.Listen
 	case <-ctx.Done():
 	}
 
-	if err := Shutdown(srv, srvError, log, cfg.ShutdownTimeout); err != nil {
+	if err := shutdown(srv, srvError, log, cfg.ShutdownTimeout); err != nil {
 		return fmt.Errorf("shutdown server: %w", err)
 	}
 
 	return nil
 }
 
-func Shutdown(srv *http.Server, ch chan error, log *slog.Logger, timeout time.Duration) error {
+func shutdown(srv *http.Server, ch chan error, log *slog.Logger, timeout time.Duration) error {
 	log.Info("shutdown started")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
