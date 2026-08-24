@@ -14,5 +14,5 @@ type routesDeps struct {
 
 func routes(r chi.Router, deps routesDeps) {
 	r.Get("/healthz", Health())
-	r.Get("/db-ping", PostgresCheck(deps.pool, deps.cfg.HTTP.ReadyTimeout))
+	r.Get("/readyz", PostgresCheck(deps.pool, deps.cfg.HTTP.ReadyTimeout))
 }
