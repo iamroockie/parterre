@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
 	"log/slog"
+	"net"
 	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
 
+	"github.com/iamroockie/parterre/internal/app/api"
 	"github.com/iamroockie/parterre/internal/platform/config"
 	"github.com/iamroockie/parterre/internal/platform/logger"
 )
@@ -24,5 +30,19 @@ func run() error {
 	log := logger.New(os.Stdout, cfg.LogLevel).With("env", cfg.AppEnv)
 	slog.SetDefault(log)
 
-	return nil
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	go func() {
+		<-ctx.Done()
+		stop()
+	}()
+
+	var lc net.ListenConfig
+	addr := net.JoinHostPort("0.0.0.0", strconv.FormatUint(uint64(cfg.HTTP.Port), 10))
+	ln, err := lc.Listen(ctx, "tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	return api.Run(ctx, cfg, log, ln)
 }
