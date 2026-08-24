@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	chimw "github.com/go-chi/chi/v5/middleware"
+
 	"github.com/iamroockie/parterre/internal/platform/logger"
 )
 
@@ -19,12 +21,18 @@ func Logger(baseLogger *slog.Logger) func(http.Handler) http.Handler {
 			)
 			ctx := logger.NewContext(r.Context(), log)
 			r = r.WithContext(ctx)
+			ww := chimw.NewWrapResponseWriter(w, r.ProtoMajor)
 
 			now := time.Now()
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(ww, r)
 			elapsed := time.Since(now)
 
+			status := ww.Status()
+			if status == 0 {
+				status = http.StatusOK
+			}
 			log.Info("http request",
+				"status", status,
 				"duration_ms", float64(elapsed.Microseconds())/1000,
 			)
 		})
