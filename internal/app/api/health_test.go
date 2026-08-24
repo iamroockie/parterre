@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iamroockie/parterre/internal/app/api"
@@ -26,10 +27,6 @@ func TestHealth(t *testing.T) {
 }
 
 func TestPostgresCheck(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping postgres check in short mode")
-	}
-
 	timeout := 20 * time.Millisecond
 
 	t.Run("ok", func(t *testing.T) {
@@ -45,7 +42,8 @@ func TestPostgresCheck(t *testing.T) {
 
 	t.Run("unavailable", func(t *testing.T) {
 		log, buf := loggertest.NewLogger(t, slog.LevelDebug)
-		pool := postgrestest.NewTestPool(t)
+		pool, err := pgxpool.New(t.Context(), "postgres://parterre@127.0.0.1:5432/parterre")
+		require.NoError(t, err)
 		pool.Close()
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
