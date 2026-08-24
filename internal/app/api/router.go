@@ -11,6 +11,8 @@ import (
 func newRouter(log *slog.Logger) *chi.Mux {
 	r := chi.NewRouter()
 
+	r.NotFound(notFound)
+	r.MethodNotAllowed(methodNotAllowed)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger(log))
 	r.Use(middleware.Recover)

@@ -1,13 +1,13 @@
 package middleware
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"runtime/debug"
 
 	chimw "github.com/go-chi/chi/v5/middleware"
 
+	"github.com/iamroockie/parterre/internal/app/api/response"
 	"github.com/iamroockie/parterre/internal/platform/logger"
 )
 
@@ -26,12 +26,7 @@ func Recover(next http.Handler) http.Handler {
 					return
 				}
 
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				jsonBody, _ := json.Marshal(map[string]string{
-					"error": "Internal server error",
-				})
-				_, _ = w.Write(jsonBody)
+				response.Error(w, http.StatusInternalServerError, "Internal error")
 			}
 		}()
 

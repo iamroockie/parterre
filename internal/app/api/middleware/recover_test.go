@@ -29,7 +29,7 @@ func TestRecoverer(t *testing.T) {
 
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
-		require.Equal(t, `{"error":"Internal server error"}`, w.Body.String())
+		require.Equal(t, `{"error":"Internal error"}`, w.Body.String())
 		require.Len(t, logs, 2)
 		msg := logs[0]
 		require.Equal(t, "test panic", msg["panic"])
