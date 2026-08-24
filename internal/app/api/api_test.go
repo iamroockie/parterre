@@ -57,6 +57,7 @@ func TestRun_FailedParsePostgresDSN(t *testing.T) {
 	ln := newListener(t)
 	log := logger.New(os.Stdout, slog.LevelDebug)
 	cfg := configtest.Default(t)
+	cfg.Postgres.DSN = "://"
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
@@ -65,11 +66,10 @@ func TestRun_FailedParsePostgresDSN(t *testing.T) {
 		runErr <- api.Run(ctx, cfg, log, ln)
 	}()
 
-	cancel()
-
 	select {
 	case err := <-runErr:
 		require.Error(t, err)
+		require.ErrorContains(t, err, "parse connection string")
 	case <-time.After(cfg.ShutdownTimeout + time.Second):
 		t.Fatal("Run не завершился после отмены контекста")
 	}
