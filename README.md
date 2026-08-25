@@ -50,7 +50,7 @@ task run:api  # http://localhost:8080
 | `task test`                 | тесты без интеграционных            |
 | `task test:all`             | все тесты, включая интеграционные   |
 | `task lint` / `task format` | линтинг / форматирование            |
-| `task check`                | линтинг и все тесты, как в CI       |
+| `task check`                | линтинг и все тесты                 |
 | `task db:psql`              | консоль postgres                    |
 
 ### Миграции
