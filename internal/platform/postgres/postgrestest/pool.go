@@ -2,18 +2,17 @@ package postgrestest
 
 import (
 	"database/sql"
+	"fmt"
 	"io/fs"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-
-	// driver pgx for database/sql, required by goose
-	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/iamroockie/parterre/internal/platform/postgres/migrations"
 )
@@ -27,9 +26,7 @@ func NewTestPool(t *testing.T) *pgxpool.Pool {
 
 	ctx := t.Context()
 
-	container, err := postgres.Run(
-		ctx,
-		"postgres:18.4-trixie",
+	container, err := postgres.Run(ctx, "postgres:18.4-trixie",
 		postgres.WithDatabase("test"),
 		postgres.WithUsername("test"),
 		postgres.WithPassword("test"),
@@ -45,11 +42,7 @@ func NewTestPool(t *testing.T) *pgxpool.Pool {
 
 	pool, err := pgxpool.New(ctx, dsn)
 	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		pool.Close()
-	})
-
+	t.Cleanup(func() { pool.Close() })
 	require.NoError(t, pool.Ping(ctx))
 
 	applyMigrations(t, dsn)
@@ -60,7 +53,7 @@ func NewTestPool(t *testing.T) *pgxpool.Pool {
 func applyMigrations(t *testing.T, dsn string) {
 	t.Helper()
 
-	db, err := sql.Open("pgx", dsn)
+	db, err := openDB(dsn, "")
 	require.NoError(t, err)
 	defer func() { _ = db.Close() }()
 
@@ -72,4 +65,17 @@ func applyMigrations(t *testing.T, dsn string) {
 
 	_, err = p.Up(t.Context())
 	require.NoError(t, err)
+}
+
+func openDB(dsn, database string) (*sql.DB, error) {
+	cfg, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, fmt.Errorf("parse connection string: %w", err)
+	}
+
+	if database != "" {
+		cfg.ConnConfig.Database = database
+	}
+
+	return stdlib.OpenDB(*cfg.ConnConfig), nil
 }
