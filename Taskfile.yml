@@ -16,7 +16,7 @@ dotenv:
 env:
   GOOSE_DRIVER: postgres
   GOOSE_DBSTRING: "{{.POSTGRES_DSN}}"
-  GOOSE_MIGRATION_DIR: "{{.ROOT_DIR}}/internal/platform/postgres/migrations"
+  GOOSE_MIGRATION_DIR: "{{.ROOT_DIR}}/internal/platform/postgres/migrations/sql"
 
 tasks:
   run:api:
