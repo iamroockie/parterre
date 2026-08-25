@@ -2,12 +2,17 @@ version: "2"
 
 formatters:
   enable:
+    - gci
     - gofumpt
-    - goimports
   settings:
-    goimports:
-      local-prefixes:
-        - github.com/iamroockie/parterre
+    gci:
+      sections:
+        - standard
+        - default
+        - blank
+        - dot
+        - localmodule
+      custom-order: true
 
 linters:
   default: none
