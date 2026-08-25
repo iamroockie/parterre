@@ -21,13 +21,13 @@ tasks:
     desc: "Запуск api"
     cmd: go run ./cmd/api
 
-  build:api:
-    desc: "Сборка api"
-    cmd: go build -o "./bin/{{.PROJECT_NAME}}-api" ./cmd/api
-
   up:
-    desc: "Запуск инфраструктуры"
-    cmd: docker compose up -d --wait
+    desc: "Запуск postgres и api в docker"
+    cmd: docker compose up -d --wait --build
+
+  up:db:
+    desc: "Запуск только postgres"
+    cmd: docker compose up -d --wait postgres
 
   down:
     desc: "Остановка инфраструктуры"
