@@ -2,14 +2,21 @@ version: 3
 
 vars:
   GOLANGCI_LINT_VERSION: "2.13.1"
+  GOOSE_VERSION: "3.27.3"
 
   PROJECT_NAME: parterre
   BIN_DIR: "{{.ROOT_DIR}}/bin"
   COVERAGE_FILE: "{{.ROOT_DIR}}/coverage.out"
   GOLANGCI_LINT: "{{.BIN_DIR}}/golangci-lint"
+  GOOSE: "{{.BIN_DIR}}/goose"
 
 dotenv:
   - .env
+
+env:
+  GOOSE_DRIVER: postgres
+  GOOSE_DBSTRING: "{{.POSTGRES_DSN}}"
+  GOOSE_MIGRATION_DIR: "{{.ROOT_DIR}}/internal/platform/postgres/migrations"
 
 tasks:
   run:api:
@@ -19,6 +26,46 @@ tasks:
   build:api:
     desc: "Сборка api"
     cmd: go build -o "./bin/{{.PROJECT_NAME}}-api" ./cmd/api
+
+  up:
+    desc: "Запуск инфраструктуры"
+    cmd: docker compose up -d --wait
+
+  down:
+    desc: "Остановка инфраструктуры"
+    cmd: docker compose down
+
+  db:psql:
+    desc: "Просмотр данных в базе данных"
+    cmd: docker compose exec postgres psql -U parterre -d parterre
+
+  migrate:create:
+    desc: "Создание SQL-миграции"
+    deps: [goose:install]
+    preconditions:
+      - sh: '[ -n "{{.CLI_ARGS}}" ]'
+        msg: "Укажите имя: task migrate:create -- create_venues"
+    cmd: '"{{.GOOSE}}" -s create "{{.CLI_ARGS}}" sql'
+
+  migrate:up:
+    desc: "Запуск SQL-миграции"
+    deps: [goose:install]
+    cmd: '"{{.GOOSE}}" up'
+
+  migrate:down:
+    desc: "Откат последней SQL-миграции"
+    deps: [goose:install]
+    cmd: '"{{.GOOSE}}" down'
+
+  migrate:status:
+    desc: "Статус SQL-миграций"
+    deps: [goose:install]
+    cmd: '"{{.GOOSE}}" status'
+
+  migrate:validate:
+    desc: "Валидация SQL-миграций"
+    deps: [goose:install]
+    cmd: '"{{.GOOSE}}" validate'
 
   check:
     desc: "Линтинг и тесты (включая интеграционные)"
@@ -70,3 +117,11 @@ tasks:
         sh -s -- -b "{{.BIN_DIR}}" "v{{.GOLANGCI_LINT_VERSION}}"
     status:
       - '"{{.GOLANGCI_LINT}}" version | grep -q "version {{.GOLANGCI_LINT_VERSION}}"'
+
+  goose:install:
+    internal: true
+    env:
+      GOBIN: "{{.BIN_DIR}}"
+    cmd: "go install github.com/pressly/goose/v3/cmd/goose@v{{.GOOSE_VERSION}}"
+    status:
+      - '"{{.GOOSE}}" -version | grep -q "v{{.GOOSE_VERSION}}"'
