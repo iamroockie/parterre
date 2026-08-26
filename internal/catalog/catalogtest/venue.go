@@ -11,7 +11,12 @@ import (
 func NewVenue(t testing.TB) *catalog.Venue {
 	t.Helper()
 
-	venue, err := catalog.NewVenue("Test name", "Test city", "Test address", "UTC")
+	venue, err := catalog.NewVenue(catalog.VenueCreateParams{
+		Name:     "Test name",
+		City:     "Test city",
+		Address:  "Test address",
+		Timezone: "UTC",
+	})
 	require.NoError(t, err)
 
 	return venue

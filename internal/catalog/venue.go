@@ -27,10 +27,17 @@ type Venue struct {
 	UpdatedAt time.Time
 }
 
-func NewVenue(name, city, address, timezone string) (*Venue, error) {
+type VenueCreateParams struct {
+	Name     string
+	City     string
+	Address  string
+	Timezone string
+}
+
+func NewVenue(params VenueCreateParams) (*Venue, error) {
 	var verrs validation.Builder
 
-	name = strings.TrimSpace(name)
+	name := strings.TrimSpace(params.Name)
 	switch {
 	case name == "":
 		verrs.Add("name", "must not be empty")
@@ -38,7 +45,7 @@ func NewVenue(name, city, address, timezone string) (*Venue, error) {
 		verrs.Add("name", fmt.Sprintf("must be at most %d characters", maxNameLen))
 	}
 
-	city = strings.TrimSpace(city)
+	city := strings.TrimSpace(params.City)
 	switch {
 	case city == "":
 		verrs.Add("city", "must not be empty")
@@ -46,7 +53,7 @@ func NewVenue(name, city, address, timezone string) (*Venue, error) {
 		verrs.Add("city", fmt.Sprintf("must be at most %d characters", maxCityLen))
 	}
 
-	address = strings.TrimSpace(address)
+	address := strings.TrimSpace(params.Address)
 	switch {
 	case address == "":
 		verrs.Add("address", "must not be empty")
@@ -54,7 +61,7 @@ func NewVenue(name, city, address, timezone string) (*Venue, error) {
 		verrs.Add("address", fmt.Sprintf("must be at most %d characters", maxAddressLen))
 	}
 
-	tz, err := parseTimezone(timezone)
+	tz, err := parseTimezone(params.Timezone)
 	if err != nil {
 		verrs.Add("timezone", err.Error())
 	}
