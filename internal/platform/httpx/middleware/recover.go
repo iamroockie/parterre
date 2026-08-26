@@ -31,7 +31,7 @@ func Recover(next http.Handler) http.Handler {
 					return
 				}
 
-				response.Error(ww, http.StatusInternalServerError, "Internal error")
+				response.ErrorInternal(ww)
 			}
 		}()
 
