@@ -3,6 +3,7 @@ package middleware
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -10,7 +11,7 @@ import (
 	"github.com/iamroockie/parterre/internal/platform/logger"
 )
 
-func Logger(baseLogger *slog.Logger) func(http.Handler) http.Handler {
+func Logger(baseLogger *slog.Logger, quiet ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			reqID := GetRequestID(r.Context())
@@ -31,10 +32,12 @@ func Logger(baseLogger *slog.Logger) func(http.Handler) http.Handler {
 			if status == 0 {
 				status = http.StatusOK
 			}
-			log.Info("http request",
-				"status", status,
-				"duration_ms", float64(elapsed.Microseconds())/1000,
-			)
+			if status != http.StatusOK || !slices.Contains(quiet, r.URL.Path) {
+				log.Info("http request",
+					"status", status,
+					"duration_ms", float64(elapsed.Microseconds())/1000,
+				)
+			}
 		})
 	}
 }

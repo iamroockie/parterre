@@ -12,9 +12,9 @@ services:
     stop_grace_period: 30s
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/readyz"]
-      interval: 2s
+      interval: 10s
       timeout: 3s
-      retries: 10
+      retries: 3
       start_period: 5s
       start_interval: 200ms
 
@@ -30,9 +30,9 @@ services:
       - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U parterre -d parterre -h 127.0.0.1"]
-      interval: 2s
+      interval: 10s
       timeout: 3s
-      retries: 10
+      retries: 3
       start_period: 5s
       start_interval: 200ms
 
