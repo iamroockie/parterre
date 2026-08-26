@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/iamroockie/parterre/internal/app/api/response"
+	"github.com/iamroockie/parterre/internal/platform/httpx/response"
 )
 
 func notFound(w http.ResponseWriter, _ *http.Request) {

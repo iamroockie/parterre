@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/iamroockie/parterre/internal/app/api"
-	"github.com/iamroockie/parterre/internal/app/api/middleware"
+	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
 	"github.com/iamroockie/parterre/internal/platform/logger/loggertest"
 	"github.com/iamroockie/parterre/internal/platform/postgres/postgrestest"
 )

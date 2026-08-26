@@ -10,7 +10,7 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/stretchr/testify/require"
 
-	"github.com/iamroockie/parterre/internal/app/api/middleware"
+	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
 	"github.com/iamroockie/parterre/internal/platform/logger/loggertest"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/iamroockie/parterre/internal/app/api/middleware"
+	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
 )
 
 func newRouter(log *slog.Logger) *chi.Mux {
