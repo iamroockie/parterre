@@ -39,7 +39,7 @@ func (h *VenueHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	venue, err := NewVenue(req.Name, req.City, req.Address, req.Timezone)
+	venue, err := NewVenue(VenueCreateParams(req))
 	if err != nil {
 		httpx.WriteError(w, r, fmt.Errorf("%s: %w", op, err))
 		return

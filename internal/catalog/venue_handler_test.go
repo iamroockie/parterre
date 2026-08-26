@@ -289,7 +289,12 @@ func TestVenueHandlerCreate(t *testing.T) {
 
 func TestVenueHandlerGet(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
-		venue, err := catalog.NewVenue("МХТ", "Москва", "Камергерский, 3", "Europe/Moscow")
+		venue, err := catalog.NewVenue(catalog.VenueCreateParams{
+			Name:     "МХТ",
+			City:     "Москва",
+			Address:  "Камергерский, 3",
+			Timezone: "Europe/Moscow",
+		})
 		require.NoError(t, err)
 
 		var asked uuid.UUID

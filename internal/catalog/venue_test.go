@@ -15,7 +15,12 @@ import (
 
 func TestVenue_New(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		got, err := catalog.NewVenue(" name\n", "  city", "address  ", "\tEurope/Moscow")
+		got, err := catalog.NewVenue(catalog.VenueCreateParams{
+			Name:     " name\n",
+			City:     "  city",
+			Address:  "address  ",
+			Timezone: "\tEurope/Moscow",
+		})
 
 		require.NoError(t, err)
 		require.NotEqual(t, uuid.Nil(), got.ID)
@@ -88,7 +93,12 @@ func TestVenue_New(t *testing.T) {
 
 		for name, tt := range tests {
 			t.Run(name, func(t *testing.T) {
-				got, err := catalog.NewVenue(tt.name, tt.city, tt.address, tt.tz)
+				got, err := catalog.NewVenue(catalog.VenueCreateParams{
+					Name:     tt.name,
+					City:     tt.city,
+					Address:  tt.address,
+					Timezone: tt.tz,
+				})
 
 				require.Nil(t, got)
 
