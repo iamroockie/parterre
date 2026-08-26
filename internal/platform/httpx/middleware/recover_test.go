@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
+	"github.com/iamroockie/parterre/internal/platform/httpx/response"
 	"github.com/iamroockie/parterre/internal/platform/logger/loggertest"
 )
 
@@ -29,7 +30,7 @@ func TestRecoverer(t *testing.T) {
 
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
-		require.Equal(t, `{"error":"Internal error"}`, w.Body.String())
+		require.JSONEq(t, `{"error":"`+response.InternalErrorMsg+`"}`, w.Body.String())
 		require.Len(t, logs, 2)
 		msg := logs[0]
 		require.Equal(t, "test panic", msg["panic"])
