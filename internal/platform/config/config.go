@@ -9,17 +9,17 @@ import (
 )
 
 type Config struct {
-	AppEnv          Env            `env:"APP_ENV,notEmpty"`
-	LogLevel        slog.Level     `env:"LOG_LEVEL" envDefault:"info"`
-	ShutdownTimeout time.Duration  `env:"SHUTDOWN_TIMEOUT" envDefault:"30s"`
-	HTTP            HTTPConfig     `envPrefix:"HTTP_"`
-	Postgres        PostgresConfig `envPrefix:"POSTGRES_"`
+	AppEnv   Env            `env:"APP_ENV,notEmpty"`
+	LogLevel slog.Level     `env:"LOG_LEVEL" envDefault:"info"`
+	HTTP     HTTPConfig     `envPrefix:"HTTP_"`
+	Postgres PostgresConfig `envPrefix:"POSTGRES_"`
 }
 
 type HTTPConfig struct {
-	Port         uint16        `env:"PORT" envDefault:"8080"`
-	IdleTimeout  time.Duration `env:"IDLE_TIMEOUT" envDefault:"60s"`
-	ReadyTimeout time.Duration `env:"READY_TIMEOUT" envDefault:"2s"`
+	Port            uint16        `env:"PORT" envDefault:"8080"`
+	IdleTimeout     time.Duration `env:"IDLE_TIMEOUT" envDefault:"60s"`
+	ReadyTimeout    time.Duration `env:"READY_TIMEOUT" envDefault:"2s"`
+	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"20s"`
 }
 
 type PostgresConfig struct {

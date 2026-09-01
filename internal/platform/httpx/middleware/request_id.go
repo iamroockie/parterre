@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"uuid"
+
+	"github.com/iamroockie/parterre/internal/platform/identity"
 )
 
 type ctxKeyRequestID struct{}
@@ -14,7 +16,7 @@ func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(r.Header.Get(HeaderRequestID))
 		if err != nil || id == uuid.Nil() {
-			id = uuid.NewV7()
+			id = identity.NewUUID()
 		}
 		w.Header().Set(HeaderRequestID, id.String())
 		ctx := context.WithValue(r.Context(), ctxKeyRequestID{}, id)

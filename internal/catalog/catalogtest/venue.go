@@ -8,16 +8,22 @@ import (
 	"github.com/iamroockie/parterre/internal/catalog"
 )
 
-func NewVenue(t testing.TB) *catalog.Venue {
+func Venue(t testing.TB) *catalog.Venue {
 	t.Helper()
 
-	venue, err := catalog.NewVenue(catalog.VenueCreateParams{
+	venue, err := catalog.NewVenue(VenueCreateParams(t))
+	require.NoError(t, err)
+
+	return venue
+}
+
+func VenueCreateParams(t testing.TB) catalog.VenueCreateParams {
+	t.Helper()
+
+	return catalog.VenueCreateParams{
 		Name:     "Test name",
 		City:     "Test city",
 		Address:  "Test address",
 		Timezone: "UTC",
-	})
-	require.NoError(t, err)
-
-	return venue
+	}
 }

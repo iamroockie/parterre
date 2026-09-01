@@ -7,7 +7,7 @@ import (
 
 	chimw "github.com/go-chi/chi/v5/middleware"
 
-	"github.com/iamroockie/parterre/internal/platform/httpx/response"
+	"github.com/iamroockie/parterre/internal/platform/httpx"
 	"github.com/iamroockie/parterre/internal/platform/logger"
 )
 
@@ -31,7 +31,7 @@ func Recover(next http.Handler) http.Handler {
 					return
 				}
 
-				response.ErrorInternal(ww)
+				httpx.WriteError(ww, r, httpx.InternalError(nil))
 			}
 		}()
 

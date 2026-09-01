@@ -12,15 +12,17 @@ func Default(t testing.TB) config.Config {
 	t.Helper()
 
 	return config.Config{
-		LogLevel:        slog.LevelInfo,
-		ShutdownTimeout: 30 * time.Second,
+		AppEnv:   config.EnvLocal,
+		LogLevel: slog.LevelInfo,
 
 		HTTP: config.HTTPConfig{
-			Port:         8080,
-			IdleTimeout:  1 * time.Minute,
-			ReadyTimeout: 2 * time.Second,
+			Port:            8080,
+			IdleTimeout:     1 * time.Minute,
+			ReadyTimeout:    2 * time.Second,
+			ShutdownTimeout: 20 * time.Second,
 		},
 
+		// nolint:exhaustruct_v5
 		Postgres: config.PostgresConfig{
 			MaxConns: 6,
 		},

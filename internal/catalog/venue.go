@@ -2,19 +2,13 @@ package catalog
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
-	"unicode/utf8"
 	"uuid"
 
-	"github.com/iamroockie/parterre/internal/platform/validation"
-)
+	v "github.com/go-ozzo/ozzo-validation/v4"
 
-const (
-	maxNameLen    = 200
-	maxCityLen    = 100
-	maxAddressLen = 300
+	"github.com/iamroockie/parterre/internal/platform/identity"
 )
 
 type Venue struct {
@@ -34,65 +28,45 @@ type VenueCreateParams struct {
 	Timezone string
 }
 
-func NewVenue(params VenueCreateParams) (*Venue, error) {
-	var verrs validation.Builder
+func NewVenue(p VenueCreateParams) (*Venue, error) {
+	name := strings.TrimSpace(p.Name)
+	city := strings.TrimSpace(p.City)
+	address := strings.TrimSpace(p.Address)
+	timezone, tzErr := parseTimezone(strings.TrimSpace(p.Timezone))
 
-	name := strings.TrimSpace(params.Name)
-	switch {
-	case name == "":
-		verrs.Add("name", "must not be empty")
-	case utf8.RuneCountInString(name) > maxNameLen:
-		verrs.Add("name", fmt.Sprintf("must be at most %d characters", maxNameLen))
-	}
-
-	city := strings.TrimSpace(params.City)
-	switch {
-	case city == "":
-		verrs.Add("city", "must not be empty")
-	case utf8.RuneCountInString(city) > maxCityLen:
-		verrs.Add("city", fmt.Sprintf("must be at most %d characters", maxCityLen))
-	}
-
-	address := strings.TrimSpace(params.Address)
-	switch {
-	case address == "":
-		verrs.Add("address", "must not be empty")
-	case utf8.RuneCountInString(address) > maxAddressLen:
-		verrs.Add("address", fmt.Sprintf("must be at most %d characters", maxAddressLen))
-	}
-
-	tz, err := parseTimezone(params.Timezone)
+	err := v.Errors{
+		"name":     v.Validate(name, v.Required, v.RuneLength(2, 100)),
+		"city":     v.Validate(city, v.Required, v.RuneLength(2, 150)),
+		"address":  v.Validate(address, v.Required, v.RuneLength(2, 200)),
+		"timezone": tzErr,
+	}.Filter()
 	if err != nil {
-		verrs.Add("timezone", err.Error())
-	}
-
-	if err := verrs.Err(); err != nil {
 		return nil, err
 	}
 
 	now := time.Now().UTC()
+
 	return &Venue{
-		ID:        uuid.NewV7(),
+		ID:        identity.NewUUID(),
 		Name:      name,
 		City:      city,
 		Address:   address,
-		Timezone:  tz,
+		Timezone:  timezone,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}, nil
 }
 
-func parseTimezone(s string) (*time.Location, error) {
-	timezone := strings.TrimSpace(s)
-	if timezone == "" {
-		return nil, errors.New("must not be empty")
+func parseTimezone(raw string) (*time.Location, error) {
+	if raw == "" {
+		return nil, errors.New("cannot be empty")
 	}
-	tz, err := time.LoadLocation(timezone)
+	tz, err := time.LoadLocation(raw)
 	if err != nil {
-		return nil, errors.New("invalid timezone")
+		return nil, errors.New("invalid format")
 	}
 	if tz == time.Local {
-		return nil, errors.New("must not be local")
+		return nil, errors.New("cannot be local")
 	}
 
 	return tz, nil

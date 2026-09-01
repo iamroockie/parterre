@@ -14,11 +14,11 @@ dotenv:
 env:
   GOOSE_DRIVER: postgres
   GOOSE_DBSTRING: "{{.POSTGRES_DSN}}"
-  GOOSE_MIGRATION_DIR: "{{.ROOT_DIR}}/internal/platform/postgres/migrations/sql"
+  GOOSE_MIGRATION_DIR: "{{.ROOT_DIR}}/internal/platform/pg/migrations/sql"
 
 tasks:
-  run:api:
-    desc: "Запуск api"
+  run:
+    desc: "Запуск приложения"
     cmd: go run ./cmd/api
 
   up:
@@ -32,10 +32,6 @@ tasks:
   down:
     desc: "Остановка инфраструктуры"
     cmd: docker compose down
-
-  db:psql:
-    desc: "Просмотр данных в базе данных"
-    cmd: docker compose exec postgres psql -U parterre -d parterre
 
   migrate:create:
     desc: "Создание SQL-миграции"

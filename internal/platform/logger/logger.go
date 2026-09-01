@@ -9,6 +9,7 @@ import (
 type ctxKey struct{}
 
 func New(w io.Writer, level slog.Level) *slog.Logger {
+	// nolint:exhaustruct_v5
 	return slog.New(slog.NewJSONHandler(w, &slog.HandlerOptions{Level: level}))
 }
 

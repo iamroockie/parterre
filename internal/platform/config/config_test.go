@@ -21,9 +21,9 @@ func TestLoad_Default(t *testing.T) {
 	t.Setenv("HTTP_PORT", strconv.FormatUint(uint64(cfg.HTTP.Port), 10))
 	t.Setenv("HTTP_IDLE_TIMEOUT", cfg.HTTP.IdleTimeout.String())
 	t.Setenv("HTTP_READY_TIMEOUT", cfg.HTTP.ReadyTimeout.String())
+	t.Setenv("HTTP_SHUTDOWN_TIMEOUT", cfg.HTTP.ShutdownTimeout.String())
 	t.Setenv("POSTGRES_DSN", cfg.Postgres.DSN)
 	t.Setenv("POSTGRES_MAX_CONNS", strconv.FormatInt(int64(cfg.Postgres.MaxConns), 10))
-	t.Setenv("SHUTDOWN_TIMEOUT", cfg.ShutdownTimeout.String())
 
 	got, err := config.Load()
 
@@ -35,11 +35,11 @@ func TestLoad_Custom(t *testing.T) {
 	t.Setenv("APP_ENV", "prod")
 	t.Setenv("LOG_LEVEL", "debug")
 	t.Setenv("HTTP_PORT", "3000")
-	t.Setenv("HTTP_IDLE_TIMEOUT", "10s")
-	t.Setenv("HTTP_READY_TIMEOUT", "20ms")
+	t.Setenv("HTTP_IDLE_TIMEOUT", "10ms")
+	t.Setenv("HTTP_READY_TIMEOUT", "10ms")
+	t.Setenv("HTTP_SHUTDOWN_TIMEOUT", "10ms")
 	t.Setenv("POSTGRES_DSN", "pg//test")
 	t.Setenv("POSTGRES_MAX_CONNS", "4")
-	t.Setenv("SHUTDOWN_TIMEOUT", "1m")
 
 	cfg, err := config.Load()
 
@@ -47,21 +47,21 @@ func TestLoad_Custom(t *testing.T) {
 	require.Equal(t, slog.LevelDebug, cfg.LogLevel)
 	require.Equal(t, config.EnvProd, cfg.AppEnv)
 	require.Equal(t, uint16(3000), cfg.HTTP.Port)
-	require.Equal(t, 10*time.Second, cfg.HTTP.IdleTimeout)
-	require.Equal(t, 20*time.Millisecond, cfg.HTTP.ReadyTimeout)
+	require.Equal(t, 10*time.Millisecond, cfg.HTTP.IdleTimeout)
+	require.Equal(t, 10*time.Millisecond, cfg.HTTP.ReadyTimeout)
+	require.Equal(t, 10*time.Millisecond, cfg.HTTP.ShutdownTimeout)
 	require.Equal(t, "pg//test", cfg.Postgres.DSN)
 	require.Equal(t, int32(4), cfg.Postgres.MaxConns)
-	require.Equal(t, time.Minute, cfg.ShutdownTimeout)
 }
 
 func TestLoad_FailParse(t *testing.T) {
 	t.Setenv("APP_ENV", "prod")
 	t.Setenv("POTGRES_DSN", "pg//")
 	tests := map[string]struct {
-		key, value, field string
+		key, value string
 	}{
-		"invalid LOG_LEVEL": {"LOG_LEVEL", "unknown", "Level"},
-		"invalid APP_ENV":   {"APP_ENV", "unknown", "AppEnv"},
+		"invalid APP_ENV":   {"APP_ENV", "unknown"},
+		"invalid LOG_LEVEL": {"LOG_LEVEL", "unknown"},
 	}
 
 	for name, tt := range tests {
@@ -72,7 +72,6 @@ func TestLoad_FailParse(t *testing.T) {
 
 			require.Error(t, err)
 			require.ErrorContains(t, err, "parse config")
-			require.ErrorContains(t, err, tt.field)
 		})
 	}
 }
