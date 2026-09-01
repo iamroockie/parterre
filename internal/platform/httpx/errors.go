@@ -1,21 +1,52 @@
 package httpx
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 
-	"github.com/iamroockie/parterre/internal/platform/httpx/response"
-	"github.com/iamroockie/parterre/internal/platform/logger"
-	"github.com/iamroockie/parterre/internal/platform/validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func WriteError(w http.ResponseWriter, r *http.Request, err error) {
-	if verrs, ok := errors.AsType[validation.Errors](err); ok {
-		status := http.StatusUnprocessableEntity
-		response.ErrorWithFields(w, status, "Validation error", verrs.Fields())
-		return
-	}
+type errorBody struct {
+	Error Error `json:"error"`
+}
 
-	logger.FromContext(r.Context()).Error("request failed", "error", err)
-	response.ErrorInternal(w)
+type Error struct {
+	status int
+	cause  error
+
+	Code    Code              `json:"code"`
+	Message string            `json:"message"`
+	Errors  validation.Errors `json:"errors,omitempty"`
+}
+
+func NewError(status int, code Code, msg string, err error) Error {
+	return Error{
+		status: status,
+		cause:  err,
+
+		Code:    code,
+		Message: msg,
+		Errors:  nil,
+	}
+}
+
+func (e Error) Status() int { return e.status }
+
+func (e Error) Error() string { return e.Message }
+
+func (e Error) Unwrap() error { return e.cause }
+
+func BadRequestError(msg string, err error) Error {
+	return NewError(http.StatusBadRequest, CodeBadRequest, msg, err)
+}
+
+func InternalError(err error) Error {
+	return NewError(http.StatusInternalServerError, CodeInternalError, "internal error", err)
+}
+
+func RouteNotFoundError(route string) Error {
+	msg := fmt.Sprintf("route %q not found", route)
+
+	return NewError(http.StatusNotFound, CodeRouteNotFound, msg, nil)
 }

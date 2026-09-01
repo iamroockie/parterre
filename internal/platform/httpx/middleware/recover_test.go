@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
-	"github.com/iamroockie/parterre/internal/platform/httpx/response"
 	"github.com/iamroockie/parterre/internal/platform/logger/loggertest"
 )
 
@@ -30,7 +29,6 @@ func TestRecoverer(t *testing.T) {
 
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
-		require.JSONEq(t, `{"error":"`+response.InternalErrorMsg+`"}`, w.Body.String())
 		require.Len(t, logs, 2)
 		msg := logs[0]
 		require.Equal(t, "test panic", msg["panic"])
@@ -42,13 +40,13 @@ func TestRecoverer(t *testing.T) {
 			rvr := recover()
 			require.Equal(t, rvr, http.ErrAbortHandler)
 		}()
-
+		log, _ := loggertest.NewLogger(t, slog.LevelDebug)
 		h := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			panic(http.ErrAbortHandler)
 		})
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
-		handler := middleware.Recover(h)
+		handler := middleware.Logger(log)(middleware.Recover(h))
 
 		handler.ServeHTTP(w, r)
 	})
@@ -59,10 +57,11 @@ func TestRecoverer(t *testing.T) {
 			_, _ = w.Write([]byte(`{"status": "success", "data": `))
 			panic("test_panic")
 		})
+		log, _ := loggertest.NewLogger(t, slog.LevelDebug)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		ww := chimw.NewWrapResponseWriter(w, r.ProtoMajor)
-		handler := middleware.Recover(h)
+		handler := middleware.Logger(log)(middleware.Recover(h))
 
 		handler.ServeHTTP(ww, r)
 

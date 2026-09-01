@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
+	"github.com/iamroockie/parterre/internal/platform/identity"
 )
 
 func TestRequestID(t *testing.T) {
@@ -19,18 +20,18 @@ func TestRequestID(t *testing.T) {
 		wantInherited bool
 	}{
 		"valid id": {
-			id:            uuid.NewV7().String(),
+			id:            identity.NewUUID().String(),
 			setHeader:     true,
 			wantInherited: true,
-		},
-		"without id": {
-			id:            "",
-			setHeader:     false,
-			wantInherited: false,
 		},
 		"empty id": {
 			id:            "",
 			setHeader:     true,
+			wantInherited: false,
+		},
+		"without id": {
+			id:            "",
+			setHeader:     false,
 			wantInherited: false,
 		},
 		"invalid id": {

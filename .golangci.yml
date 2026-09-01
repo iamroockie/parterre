@@ -22,6 +22,7 @@ linters:
     - canonicalheader
     - copyloopvar
     - embeddedstructfieldcheck
+    - exhaustruct_v5
     - errcheck
     - errname
     - errorlint

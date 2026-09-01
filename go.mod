@@ -5,6 +5,7 @@ go 1.27
 require (
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/go-chi/chi/v5 v5.3.2
+	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/pressly/goose/v3 v3.27.3
 	github.com/stretchr/testify v1.12.1

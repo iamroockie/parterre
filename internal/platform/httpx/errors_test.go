@@ -1,98 +1,55 @@
 package httpx_test
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"log/slog"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/iamroockie/parterre/internal/platform/httpx"
-	"github.com/iamroockie/parterre/internal/platform/httpx/middleware"
-	"github.com/iamroockie/parterre/internal/platform/httpx/response"
-	"github.com/iamroockie/parterre/internal/platform/logger/loggertest"
-	"github.com/iamroockie/parterre/internal/platform/validation"
 )
 
-func serve(t *testing.T, h http.HandlerFunc) (*httptest.ResponseRecorder, []map[string]any) {
-	t.Helper()
+func TestError(t *testing.T) {
+	t.Run("new", func(t *testing.T) {
+		e := errors.New("test conflict")
+		code := httpx.Code("CONFLICT")
+		status := http.StatusConflict
+		msg := "test message"
 
-	log, buf := loggertest.NewLogger(t, slog.LevelDebug)
-	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-	w := httptest.NewRecorder()
+		err := httpx.NewError(status, code, msg, e)
 
-	middleware.Logger(log)(h).ServeHTTP(w, r)
-
-	return w, loggertest.Logs(t, buf)
-}
-
-func decodeError(t *testing.T, w *httptest.ResponseRecorder) (string, map[string]string) {
-	t.Helper()
-
-	var body struct {
-		Error  string            `json:"error"`
-		Fields map[string]string `json:"fields"`
-	}
-	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
-
-	return body.Error, body.Fields
-}
-
-func validationError() error {
-	var b validation.Builder
-	b.Add("name", "must not be empty")
-	b.Add("timezone", "invalid timezone")
-
-	return b.Err()
-}
-
-func TestWriteErrorValidation(t *testing.T) {
-	w, logs := serve(t, func(w http.ResponseWriter, r *http.Request) {
-		httpx.WriteError(w, r, validationError())
+		require.ErrorIs(t, err, e)
+		require.Equal(t, msg, err.Error())
+		require.Equal(t, status, err.Status())
 	})
 
-	require.Equal(t, http.StatusUnprocessableEntity, w.Code)
-	require.Equal(t, "application/json", w.Header().Get("Content-Type"))
+	t.Run("bad request", func(t *testing.T) {
+		msg := "bad request"
+		e := errors.New("test bad request")
 
-	msg, fields := decodeError(t, w)
-	require.Equal(t, "Validation error", msg)
-	require.Equal(t, map[string]string{
-		"name":     "must not be empty",
-		"timezone": "invalid timezone",
-	}, fields)
+		err := httpx.BadRequestError(msg, e)
 
-	require.Len(t, logs, 1)
-	require.Equal(t, "http request", logs[0]["msg"])
-}
-
-func TestWriteErrorValidationWrapped(t *testing.T) {
-	w, _ := serve(t, func(w http.ResponseWriter, r *http.Request) {
-		httpx.WriteError(w, r, fmt.Errorf("create venue: %w", validationError()))
+		require.ErrorIs(t, err, e)
+		require.Equal(t, msg, err.Error())
+		require.Equal(t, http.StatusBadRequest, err.Status())
+		require.Equal(t, msg, err.Message)
 	})
 
-	require.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	t.Run("internal server error", func(t *testing.T) {
+		e := errors.New("test internal error")
 
-	_, fields := decodeError(t, w)
-	require.Len(t, fields, 2)
-}
+		err := httpx.InternalError(e)
 
-func TestWriteErrorInternal(t *testing.T) {
-	w, logs := serve(t, func(w http.ResponseWriter, r *http.Request) {
-		httpx.WriteError(w, r, fmt.Errorf("create venue: %w", errors.New("boom")))
+		require.ErrorIs(t, err, e)
+		require.Equal(t, "internal error", err.Error())
+		require.Equal(t, http.StatusInternalServerError, err.Status())
 	})
 
-	require.Equal(t, http.StatusInternalServerError, w.Code)
+	t.Run("route not found", func(t *testing.T) {
+		err := httpx.RouteNotFoundError("api/unknwown")
 
-	require.JSONEq(t, `{"error":"`+response.InternalErrorMsg+`"}`, w.Body.String())
-	require.NotContains(t, w.Body.String(), "boom")
-	require.NotContains(t, w.Body.String(), "create venue")
-
-	require.Len(t, logs, 2)
-	require.Equal(t, "request failed", logs[0]["msg"])
-	require.Contains(t, logs[0]["error"], "create venue")
-	require.Contains(t, logs[0]["error"], "boom")
+		require.Equal(t, `route "api/unknwown" not found`, err.Error())
+		require.Equal(t, http.StatusNotFound, err.Status())
+	})
 }
