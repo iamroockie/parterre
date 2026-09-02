@@ -8,11 +8,19 @@ import (
 	"github.com/iamroockie/parterre/internal/catalog"
 )
 
-const PathVenueID = "venue_id"
+const (
+	PathHallID  = "hall_id"
+	PathVenueID = "venue_id"
+)
 
 func RegisterRoutes(r chi.Router, m catalog.Module) {
 	r.Route("/venues", func(r chi.Router) {
 		r.Post("/", CreateVenue(m.CreateVenue))
 		r.Get(fmt.Sprintf("/{%s}", PathVenueID), GetVenue(m.GetVenue))
+	})
+
+	r.Route("/halls", func(r chi.Router) {
+		r.Post("/", CreateHall(m.CreateHall))
+		r.Get(fmt.Sprintf("/{%s}", PathHallID), GetHall(m.GetHall))
 	})
 }

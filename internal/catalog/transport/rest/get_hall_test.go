@@ -18,55 +18,55 @@ import (
 	"github.com/iamroockie/parterre/internal/platform/identity"
 )
 
-func TestGetVenue(t *testing.T) {
+func TestGetHall(t *testing.T) {
 	calls := 0
-	venue := catalogtest.Venue(t)
-	wantResp := rest.VenueResponseFromModel(venue)
-	get := func(_ context.Context, _ uuid.UUID) (*catalog.Venue, error) {
+	hall := catalogtest.Hall(t)
+	wantResp := rest.HallResponseFromModel(hall)
+	get := func(_ context.Context, _ uuid.UUID) (*catalog.Hall, error) {
 		calls++
-		return venue, nil
+		return hall, nil
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-	r.SetPathValue(rest.PathVenueID, venue.ID.String())
+	r.SetPathValue(rest.PathHallID, hall.ID.String())
 
-	rest.GetVenue(get).ServeHTTP(w, r)
+	rest.GetHall(get).ServeHTTP(w, r)
 
 	require.Equal(t, 1, calls)
 	require.Equal(t, http.StatusOK, w.Code)
-	var resp rest.VenueResponse
+	var resp rest.HallResponse
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	require.Equal(t, wantResp, resp)
 }
 
-func TestGetVenue_InvalidPathVenueID(t *testing.T) {
-	get := func(_ context.Context, _ uuid.UUID) (*catalog.Venue, error) {
+func TestGetHall_InvalidPathHallID(t *testing.T) {
+	get := func(_ context.Context, _ uuid.UUID) (*catalog.Hall, error) {
 		t.Fatal()
 		return nil, nil
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-	r.SetPathValue(rest.PathVenueID, "11-22-33")
+	r.SetPathValue(rest.PathHallID, "11-22-33")
 
-	rest.GetVenue(get).ServeHTTP(w, r)
+	rest.GetHall(get).ServeHTTP(w, r)
 
 	require.Equal(t, http.StatusBadRequest, w.Code)
 	resp := httpxtest.DecodeErrorResponse(t, w)
 	require.Equal(t, httpx.CodeBadRequest, resp.Error.Code)
-	require.Equal(t, "invalid path venue id", resp.Error.Message)
+	require.Equal(t, "invalid path hall id", resp.Error.Message)
 }
 
-func TestGetVenue_VenueNotFound(t *testing.T) {
-	get := func(_ context.Context, _ uuid.UUID) (*catalog.Venue, error) {
-		return nil, catalog.ErrVenueNotFound
+func TestGetHall_HallNotFound(t *testing.T) {
+	get := func(_ context.Context, _ uuid.UUID) (*catalog.Hall, error) {
+		return nil, catalog.ErrHallNotFound
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-	r.SetPathValue(rest.PathVenueID, identity.NewUUID().String())
+	r.SetPathValue(rest.PathHallID, identity.NewUUID().String())
 
-	rest.GetVenue(get).ServeHTTP(w, r)
+	rest.GetHall(get).ServeHTTP(w, r)
 
 	require.Equal(t, http.StatusNotFound, w.Code)
 	resp := httpxtest.DecodeErrorResponse(t, w)
-	require.Equal(t, rest.CodeVenueNotFound, resp.Error.Code)
+	require.Equal(t, rest.CodeHallNotFound, resp.Error.Code)
 }

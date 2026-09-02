@@ -14,3 +14,11 @@ type venueSaver interface {
 type venueGetter interface {
 	Get(context.Context, uuid.UUID) (*catalog.Venue, error)
 }
+
+type hallSaver interface {
+	Save(context.Context, *catalog.Hall) error
+}
+
+type hallGetter interface {
+	Get(context.Context, uuid.UUID) (*catalog.Hall, error)
+}

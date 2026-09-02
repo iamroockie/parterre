@@ -19,7 +19,7 @@ func (f getVenue) Get(ctx context.Context, id uuid.UUID) (*catalog.Venue, error)
 }
 
 func TestGetVenue(t *testing.T) {
-	var calls int
+	calls := 0
 	venue := catalogtest.Venue(t)
 	get := getVenue(func(_ context.Context, _ uuid.UUID) (*catalog.Venue, error) {
 		calls++

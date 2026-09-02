@@ -20,66 +20,74 @@ import (
 	"github.com/iamroockie/parterre/internal/platform/httpx/httpxtest"
 )
 
-func venueCreateRequestData(t testing.TB) []byte {
+func hallCreateRequestData(t testing.TB) []byte {
 	t.Helper()
 
-	req := rest.CreateVenueRequest(catalogtest.VenueCreateParams(t))
+	p := catalogtest.HallCreateParams(t)
+	sections := make([]rest.CreateHallSectionRequest, 0, len(p.Sections))
+	for _, s := range p.Sections {
+		sections = append(sections, rest.CreateHallSectionRequest(s))
+	}
+	req := rest.CreateHallRequest{
+		VenueID:  p.VenueID,
+		Name:     p.Name,
+		Sections: sections,
+	}
 	data, err := json.Marshal(req)
 	require.NoError(t, err)
 
 	return data
 }
 
-func TestCreateVenue(t *testing.T) {
+func TestCreateHall(t *testing.T) {
 	calls := 0
-	venue := catalogtest.Venue(t)
-	wantResp := rest.VenueResponseFromModel(venue)
-	req := venueCreateRequestData(t)
-	create := func(_ context.Context, _ catalog.VenueCreateParams) (*catalog.Venue, error) {
+	hall := catalogtest.Hall(t)
+	wantResp := rest.HallResponseFromModel(hall)
+	req := hallCreateRequestData(t)
+	create := func(_ context.Context, _ catalog.HallCreateParams) (*catalog.Hall, error) {
 		calls++
-		return venue, nil
+		return hall, nil
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", bytes.NewReader(req))
 
-	rest.CreateVenue(create).ServeHTTP(w, r)
-
+	rest.CreateHall(create).ServeHTTP(w, r)
 	require.Equal(t, 1, calls)
 	require.Equal(t, http.StatusCreated, w.Code)
-	var resp rest.VenueResponse
+	var resp rest.HallResponse
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	require.Equal(t, wantResp, resp)
-	location := path.Join(r.URL.Path, venue.ID.String())
+	location := path.Join(r.URL.Path, hall.ID.String())
 	require.Equal(t, location, w.Result().Header.Get("Location"))
 }
 
-func TestCreateVenue_InvalidBody(t *testing.T) {
-	create := func(_ context.Context, _ catalog.VenueCreateParams) (*catalog.Venue, error) {
+func TestCreateHall_InvalidBody(t *testing.T) {
+	create := func(_ context.Context, _ catalog.HallCreateParams) (*catalog.Hall, error) {
 		t.Fatal()
 		return nil, nil
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader(""))
 
-	rest.CreateVenue(create).ServeHTTP(w, r)
+	rest.CreateHall(create).ServeHTTP(w, r)
 
 	require.Equal(t, http.StatusBadRequest, w.Code)
 	resp := httpxtest.DecodeErrorResponse(t, w)
 	require.Equal(t, httpx.CodeBadRequest, resp.Error.Code)
 }
 
-func TestCreateVenue_InternalError(t *testing.T) {
+func TestCreateHall_InternalError(t *testing.T) {
 	calls := 0
 	err := errors.New("internal test error")
-	create := func(_ context.Context, _ catalog.VenueCreateParams) (*catalog.Venue, error) {
+	create := func(_ context.Context, _ catalog.HallCreateParams) (*catalog.Hall, error) {
 		calls++
 		return nil, err
 	}
 	w := httptest.NewRecorder()
-	req := venueCreateRequestData(t)
+	req := hallCreateRequestData(t)
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", bytes.NewReader(req))
 
-	rest.CreateVenue(create).ServeHTTP(w, r)
+	rest.CreateHall(create).ServeHTTP(w, r)
 
 	require.Equal(t, 1, calls)
 	require.Equal(t, http.StatusInternalServerError, w.Code)
