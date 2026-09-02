@@ -12,20 +12,20 @@ import (
 	"github.com/iamroockie/parterre/internal/catalog/usecase"
 )
 
-type saveVenue func(context.Context, *catalog.Venue) error
+type saveHall func(ctx context.Context, hall *catalog.Hall) error
 
-func (f saveVenue) Save(ctx context.Context, venue *catalog.Venue) error {
-	return f(ctx, venue)
+func (f saveHall) Save(ctx context.Context, hall *catalog.Hall) error {
+	return f(ctx, hall)
 }
 
-func TestCreateVenue(t *testing.T) {
+func TestCreateHall(t *testing.T) {
 	calls := 0
-	save := saveVenue(func(_ context.Context, _ *catalog.Venue) error {
+	save := saveHall(func(_ context.Context, _ *catalog.Hall) error {
 		calls++
 		return nil
 	})
-	uc := usecase.NewCreateVenue(save)
-	p := catalogtest.VenueCreateParams(t)
+	uc := usecase.NewCreateHall(save)
+	p := catalogtest.HallCreateParams(t)
 
 	got, err := uc.Execute(t.Context(), p)
 
@@ -34,14 +34,14 @@ func TestCreateVenue(t *testing.T) {
 	require.NotNil(t, got)
 }
 
-func TestCreateVenue_InvalidVenueCreateParams(t *testing.T) {
-	save := saveVenue(func(_ context.Context, _ *catalog.Venue) error {
+func TestCreateHall_InvalidCreateParams(t *testing.T) {
+	save := saveHall(func(_ context.Context, _ *catalog.Hall) error {
 		t.Fatal()
 		return nil
 	})
-	uc := usecase.NewCreateVenue(save)
+	uc := usecase.NewCreateHall(save)
 	// nolint:exhaustruct_v5
-	p := catalog.VenueCreateParams{}
+	p := catalog.HallCreateParams{}
 
 	got, err := uc.Execute(t.Context(), p)
 
@@ -49,15 +49,15 @@ func TestCreateVenue_InvalidVenueCreateParams(t *testing.T) {
 	require.Nil(t, got)
 }
 
-func TestCreateVenue_InternalError(t *testing.T) {
+func TestCreateHall_InternalError(t *testing.T) {
 	calls := 0
 	throwErr := errors.New("error")
-	save := saveVenue(func(_ context.Context, _ *catalog.Venue) error {
+	save := saveHall(func(_ context.Context, _ *catalog.Hall) error {
 		calls++
 		return throwErr
 	})
-	uc := usecase.NewCreateVenue(save)
-	p := catalogtest.VenueCreateParams(t)
+	uc := usecase.NewCreateHall(save)
+	p := catalogtest.HallCreateParams(t)
 
 	got, err := uc.Execute(t.Context(), p)
 

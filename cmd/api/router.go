@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/iamroockie/parterre/internal/catalog"
-	"github.com/iamroockie/parterre/internal/catalog/infra/postgres"
+	catalogPg "github.com/iamroockie/parterre/internal/catalog/infra/postgres"
 	catalogRest "github.com/iamroockie/parterre/internal/catalog/transport/rest"
 	catalogUC "github.com/iamroockie/parterre/internal/catalog/usecase"
 	"github.com/iamroockie/parterre/internal/platform/config"
@@ -30,12 +30,16 @@ func router(deps dependencies) *chi.Mux {
 	r.Use(middleware.Logger(deps.log, "/healthz", "/readyz"))
 	r.Use(middleware.Recover)
 
-	venueStore := postgres.NewVenueStore(deps.pool)
+	venueStore := catalogPg.NewVenueStore(deps.pool)
+	hallStore := catalogPg.NewHallStore(deps.pool)
 
 	catalogMod := catalog.Module{
 		GetVenue:    catalogUC.NewGetVenue(venueStore).Execute,
 		CreateVenue: catalogUC.NewCreateVenue(venueStore).Execute,
+		GetHall:     catalogUC.NewGetHall(hallStore).Execute,
+		CreateHall:  catalogUC.NewCreateHall(hallStore).Execute,
 	}
+
 	r.Get("/healthz", httpx.Health)
 	r.Get("/readyz", httpx.PostgresCheck(deps.pool, deps.cfg.HTTP.ReadyTimeout))
 
